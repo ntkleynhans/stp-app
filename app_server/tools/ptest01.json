@@ -1,0 +1,32 @@
+{
+    "testid": 1,
+
+    "auser": "root",
+    "apassw": "123456",
+    "atoken": null,
+
+    "user": "neil",
+    "passw": "neil",
+    "passw_": "neil2",
+    "token": null,
+    "name": "Neil",
+    "surname": "Kleynhans",
+    "email": "ntkleynhans@gmail.com",
+    "role" : "project;editor",
+
+    "projectname": "masefield",
+    "projectcat": "General",
+    "audiofile": "./tallship.ogg",
+    "audiodur": 5.154830,
+    "pid": null,
+
+    "savetasks": [{"editor" : "neil", "speaker" : "Zuma", "start" : 0.0, "end" : 2.0, "language" : "English"},
+                  {"editor" : "daniel", "speaker" : "Mbeki", "start" : 2.0, "end" : 4.0, "language" : "Afrikaans"},
+                  {"editor" : "gamer", "speaker" : "Mandela", "start" : 4.0, "end" : 5.154830, "language" : "Zulu"}],
+    "saveproj": {"projectname": "saved_project"},
+    
+    "updatetasks": [{"taskid": 2, "editor" : "daniel", "speaker" : "Mandela", "start" : 4.0, "end" : 5.154830, "language" : "Guangdong hua"}],
+    "updateproj": {"projectname": "updated_project"},
+
+    "diarizectm": "0.0 1.0\n1.0 2.0\n2.0 5.154830"
+}
