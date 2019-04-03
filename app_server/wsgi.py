@@ -12,6 +12,9 @@ import datetime
 import math
 import fcntl
 import tempfile
+import sys
+
+sys.path.append("./service")
 
 from dispatcher import Dispatch
 from service.httperrs import *
@@ -71,6 +74,7 @@ def build_json_response(data):
         response = json.dumps(data)
     else:
         response = json.dumps({'message' : repr(data)})
+    response = response.encode()
     response_header = [('Content-Type','application/json'), ('Content-Length', str(len(response)))]
     return response, response_header
 
@@ -187,7 +191,7 @@ def application(env, start_response):
             response_header = [("Access-Control-Allow-Origin", "*"), ("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS"), 
             ("Access-Control-Allow-Headers", "Content-Type") ,("Access-Control-Max-Age", "86400")]
             start_response('200 OK', response_header)
-            return []
+            return [b'']
 
         else:
             raise MethodNotAllowedError("Supported methods are: GET, POST or PUT")

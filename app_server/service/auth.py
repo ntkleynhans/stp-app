@@ -121,7 +121,7 @@ class UserAuth(object):
             else:
                 username, pwhash, salt, name, surname, email, role, tmppwhash = entry
                 #Password correct?
-                inpwhash = bcrypt.hashpw(request["password"], salt.encode()).decode()
+                inpwhash = bcrypt.hashpw(request["password"].encode(), salt.encode()).decode()
                 if pwhash != inpwhash:
                     if tmppwhash:
                         if tmppwhash != inpwhash:

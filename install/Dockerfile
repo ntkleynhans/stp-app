@@ -6,15 +6,12 @@ LABEL Description="Basic STP platform served over HTTP using Apache"
 
 #Install standard tools from Ubuntu repo
 #RUN apt-get clean all && apt-get update && apt-get install -y --force-yes software-properties-common
-#RUN add-apt-repository ppa:jonathonf/python-2.7
 RUN apt-get clean all && apt-get update && apt-get install -y --force-yes apache2 libapache2-mod-proxy-uwsgi uwsgi uwsgi-plugin-python patch python python-bcrypt python-requests python-git sox libsox-fmt-all mp3splt pandoc vorbis-tools
-#RUN apt-get clean all && apt-get update && apt-get install -y --force-yes apache2 libapache2-mod-proxy-uwsgi uwsgi uwsgi-plugin-python patch python python-bcrypt python-pip python-git sox libsox-fmt-all mp3splt pandoc vorbis-tools
-#RUN pip install requests
 
 #Configure Apache to forward requests (uWSGI)
 COPY stp/install/* /etc/apache2/sites-available/
 RUN patch /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf.patch
-RUN a2enmod proxy headers
+RUN a2enmod proxy proxy_http headers
 
 #Setup user and source code for platform
 # IF NEEDED: Change FSUID to harmonize with host system user's UID (mounted file system)

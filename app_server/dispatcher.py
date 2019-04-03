@@ -5,7 +5,7 @@ import json
 import os
 import codecs
 import cgi
-import cStringIO
+import io
 import logging
 
 from service.httperrs import *
@@ -122,7 +122,7 @@ class Dispatch:
 
             dispatch_result = dict()
             result = method(data)
-            if type(result) in [str, unicode]:
+            if type(result) in [str, bytes]:
                 dispatch_result["message"] = result
             elif type(result) is dict:
                 dispatch_result.update(result)
@@ -141,10 +141,12 @@ class Dispatch:
         else:
             (header, bound) = env['CONTENT_TYPE'].split('boundary=')
             request_body_size = int(env.get('CONTENT_LENGTH', 0))
-            request_body = env['wsgi.input'].read(request_body_size)
-            form_raw = cgi.parse_multipart(cStringIO.StringIO(request_body), {'boundary': bound})
+            form_raw = cgi.parse_multipart(env['wsgi.input'], {'boundary': bytes(bound, "utf-8")})
             for key in form_raw.keys():
-                data[key] = form_raw[key][0]
+                if 'file' == key:
+                    data[key] = form_raw[key][0]
+                    continue    
+                data[key] = form_raw[key][0].decode()
             LOG.debug("Data keys: {}".format(data.keys()))
         for parameter in self._routing['POST'][uri]['parameters']:
             if parameter not in data:
@@ -164,7 +166,7 @@ class Dispatch:
         method = getattr(module, self._routing['POST'][uri]['method'])
         dispatch_result = dict()
         result = method(data)
-        if type(result) in [str, unicode]:
+        if type(result) in [str, bytes]:
             dispatch_result["message"] = result
         elif type(result) is dict:
             dispatch_result.update(result)
@@ -182,10 +184,12 @@ class Dispatch:
         else:
             (header, bound) = env['CONTENT_TYPE'].split('boundary=')
             request_body_size = int(env.get('CONTENT_LENGTH', 0))
-            request_body = env['wsgi.input'].read(request_body_size)
-            form_raw = cgi.parse_multipart(cStringIO.StringIO(request_body), {'boundary': bound})
+            form_raw = cgi.parse_multipart(env['wsgi.input'], {'boundary': bytes(bound, "utf-8")})
             for key in form_raw.keys():
-                data[key] = form_raw[key][0]
+                if 'file' == key:
+                    data[key] = form_raw[key][0]
+                    continue    
+                data[key] = form_raw[key][0].decode()
             LOG.debug("Data keys: {}".format(data.keys()))
 
         uri = env['PATH_INFO']
@@ -218,7 +222,7 @@ class Dispatch:
             method = getattr(module, self._routing['PUT'][uri]['method'])
             dispatch_result = dict()
             result = method(data)
-            if type(result) in [str, unicode]:
+            if type(result) in [str, bytes]:
                 dispatch_result["message"] = result
             elif type(result) is dict:
                 dispatch_result.update(result)

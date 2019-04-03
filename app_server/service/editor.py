@@ -49,7 +49,7 @@ def authlog(okaymsg):
                 fn_globals = {}
                 fn_globals.update(globals())
                 fn_globals.update({"username": username})
-                call_fn = FunctionType(getattr(f, "func_code"), fn_globals) #Only Py2
+                call_fn = FunctionType(getattr(f, "__code__"), fn_globals) #Only Py2
                 #LOG-CALL-LOG-RETURN
                 if "projectid" in request:
                     LOG.info("ENTER: (username={} projectid={})".format(username, request["projectid"]), extra=logfuncname)
@@ -102,11 +102,14 @@ class Editor(auth.UserAuth):
         with self.db as db:
             editor_tasks = db.get_all_tasks(username)
             LOG.debug("{}".format(editor_tasks))
+
+        with self.db as db:
             collator_tasks = db.get_all_tasks(username, mode="collator")
             LOG.debug("{}".format(collator_tasks))
-            if type(collator_tasks) in [str, unicode]:
+            if type(collator_tasks) in [str, bytes]:
                 collator_tasks = []
-            tasks = {"editor" : editor_tasks, "collator" : collator_tasks }
+
+        tasks = {"editor" : editor_tasks, "collator" : collator_tasks }
 
         return tasks
 
@@ -825,7 +828,7 @@ class EditorDB(sqlite.Connection):
 
         if projectids is None:
             return "No projects have been created"
-        projectids = map(dict, projectids)
+        projectids = list(map(dict, projectids))
         LOG.debug("{}".format(projectids))
 
         # Check if project is okay
@@ -852,7 +855,7 @@ class EditorDB(sqlite.Connection):
                 _tmp = self.execute("SELECT * FROM T{} WHERE projectid=?".format(year), (projectid,)).fetchall()
 
             if _tmp is not None:
-                _tmp = map(dict, _tmp)
+                _tmp = list(map(dict, _tmp))
                 for x in _tmp: x.update({"year" : year, "projectname" : projectname, "category" : category})
                 raw_tasks.extend(_tmp)
 

@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     if args.rootpass is not None:
         salt = bcrypt.gensalt().decode()
-        pwhash = bcrypt.hashpw(args.rootpass.encode(), salt).decode()
+        pwhash = bcrypt.hashpw(args.rootpass.encode(), salt.encode()).decode()
 
         db_curs = db_conn.cursor()
         db_curs.execute("INSERT INTO users ( username, pwhash, salt, name, surname, email, role, tmppwhash ) VALUES (?,?,?,?,?,?,?,?)", ("root", pwhash, salt, None, None, None, "admin", None))

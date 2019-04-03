@@ -57,7 +57,7 @@ def authlog(okaymsg):
                 fn_globals = {}
                 fn_globals.update(globals())
                 fn_globals.update({"username": username})
-                call_fn = FunctionType(getattr(f, "func_code"), fn_globals) #Only Py2
+                call_fn = FunctionType(getattr(f, "__code__"), fn_globals) #Only Py2
                 #LOG-CALL-LOG-RETURN
                 if "projectid" in request:
                     LOG.info("ENTER: (username={} projectid={})".format(username, request["projectid"]), extra=logfuncname)
@@ -211,7 +211,7 @@ class Projects(auth.UserAuth):
 
         #Extract relevant project fields from input
         infields = ("projectname", "category", "projectstatus")
-        projectdata = dict([(k, v) for k, v in request["project"].iteritems() if k in infields])
+        projectdata = dict([(k, v) for k, v in iter(request["project"].items()) if k in infields])
 
         #Check received tasks are: contiguous, non-overlapping,
         #completely spanning audiofile (implicitly: audio uploaded)
@@ -269,7 +269,7 @@ class Projects(auth.UserAuth):
             undefined = (None, "")
             infields = ("taskid", "projectid", "editor", "speaker", "start", "end", "language")
             for task in tasks:
-                if not all(v not in undefined for k, v in task.iteritems() if k in infields):
+                if not all(v not in undefined for k, v in iter(task.items()) if k in infields):
                     raise BadRequestError("Not all necessary task fields are defined (use save_project() first)")
             #Lock the project
             db.lock_project(request["projectid"], jobid="assign_tasks")
@@ -417,7 +417,7 @@ class Projects(auth.UserAuth):
                 os.makedirs(ppath)
 
             #Write audio file (DEMIT: check audiofile name creation)
-            audiofile = os.path.join(ppath, base64.urlsafe_b64encode(str(uuid.uuid4())))
+            audiofile = os.path.join(ppath, base64.urlsafe_b64encode(str(uuid.uuid4()).encode()).decode())
             with open(audiofile, 'wb') as f:
                 f.write(request['file'])
             audiodur = float(subprocess.check_output([SOXI_BIN, "-D", audiofile]))
@@ -624,7 +624,7 @@ class ProjectDB(sqlite.Connection):
             rows = self.execute("SELECT {} FROM projects".format(selectq)).fetchall()            
         if rows is None:
             return []
-        return map(dict, rows)
+        return list(map(dict, rows))
 
     def check_project(self, projectid, check_err=False):
         """This should be run before attempting to make changes to a project,
@@ -672,7 +672,7 @@ class ProjectDB(sqlite.Connection):
             message = "projectid={} No tasks found".format(projectid)
             LOG.debug(message)
             raise NotFoundError(message)
-        return map(dict, tasks)
+        return list(map(dict, tasks))
 
 ##################################################
 ############################## WRITE OPERATIONS
