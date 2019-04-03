@@ -1,8 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """ Create initial project table
 """
-from __future__ import unicode_literals, division, print_function #Py2
 
 __author__ = "Neil Kleynhans"
 __email__ = "ntkleynhans@gmail.com"
@@ -48,4 +47,3 @@ if __name__ == "__main__":
     db_curs.execute("CREATE TABLE message ({})".format(", ".join(["key VARCHAR(36)",
                                                                   "message VARCHAR(128)"])))
     db_conn.commit()
-

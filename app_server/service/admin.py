@@ -1,6 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals, division, print_function #Py2
 
 import json
 import logging
@@ -9,13 +8,8 @@ import base64
 import uuid
 import requests
 import copy
-
-try:
-    from sqlite3 import dbapi2 as sqlite
-except ImportError:
-    from pysqlite2 import dbapi2 as sqlite
-
-import bcrypt #Ubuntu/Debian: apt-get install python-bcrypt
+from sqlite3 import dbapi2 as sqlite
+import bcrypt #Ubuntu/Debian: apt-get install python3-bcrypt
 
 import auth
 from httperrs import *

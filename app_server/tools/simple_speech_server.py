@@ -1,10 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals, division, print_function #Py2
 
 import time
-import BaseHTTPServer
-import SocketServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import socketserver
 import json
 import uuid
 import base64
@@ -12,7 +11,7 @@ import time
 import os
 import requests
 import threading
-import Queue
+import queue
 import urllib
 import json
 import socket
@@ -27,7 +26,7 @@ host_ip = 'localhost'
 HOST_NAME = host_ip # !!!REMEMBER TO CHANGE THIS!!!
 PORT_NUMBER = 9950 # Maybe set this to 9000.
 
-Q = Queue.Queue()
+Q = queue.Queue()
 
 # Process speech requests
 class dHandle(threading.Thread):
@@ -65,11 +64,11 @@ class dHandle(threading.Thread):
         self.running = False
 
 # Thread the HTTP server
-class ThreadedHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
+class ThreadedHTTPServer(socketserver.ThreadingMixIn, HTTPServer):
     """Handle requests in a separate thread."""
 
 # Handle HTTP requests
-class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class MyHandler(BaseHTTPRequestHandler):
     def do_POST(s):
         """Respond to a GET request."""
 
@@ -79,11 +78,11 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         data = None
         if os.path.basename(s.path) == "login":
-            data = {"token" : base64.urlsafe_b64encode(str(uuid.uuid4()))}
+            data = {"token" : base64.urlsafe_b64encode(str(uuid.uuid4()).encode()).decode()}
         elif os.path.basename(s.path) == "logout":
             data = {"message" : "User logged out"}
         elif os.path.basename(s.path) == "addjob":
-            length = int(s.headers.getheader('content-length'))
+            length = int(s.headers.get('content-length'))
             job = s.rfile.read(length)
             Q.put(job)
             data = {"jobid" : "123"}
@@ -91,11 +90,11 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             data = {"message" : "Job deleted"}
         else:
             data = {"message" : "Unknown request"}
-            length = int(s.headers.getheader('content-length'))
+            length = int(s.headers.get('content-length'))
             f = open('tmp.dat', 'wb')
             f.write(s.rfile.read(length))
             f.close()
-        s.wfile.write(json.dumps(data))
+        s.wfile.write(bytes(json.dumps(data), 'utf-8'))
 
 
 if __name__ == '__main__':

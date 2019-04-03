@@ -1,8 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """ A subset of HTTP errors for use in the platform modules/dispatcher.
 """
-from __future__ import unicode_literals, division, print_function #Py2
 
 class BadRequestError(Exception):
     """ Intended to map to "HTTP 400 Bad Request"

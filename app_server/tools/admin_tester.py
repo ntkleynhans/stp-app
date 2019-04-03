@@ -1,6 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals, division, print_function #Py2
 
 import requests
 import sys
@@ -260,4 +259,3 @@ if __name__ == "__main__":
 
         else:
             print("UNKNOWN TASK: {}".format(sys.argv))
-

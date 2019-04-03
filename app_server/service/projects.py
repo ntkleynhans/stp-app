@@ -1,6 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals, division, print_function #Py2
 
 #standard library
 import uuid
@@ -14,13 +13,8 @@ import subprocess
 import logging
 from functools import wraps
 from types import FunctionType
-try:
-    from sqlite3 import dbapi2 as sqlite
-except ImportError:
-    from pysqlite2 import dbapi2 as sqlite #for old Python versions
-
-#3rd party
-import requests #Ubuntu/Debian: apt-get install python-requests
+from sqlite3 import dbapi2 as sqlite
+import requests #Ubuntu/Debian: apt-get install python3-requests
 
 #local
 import auth
@@ -83,10 +77,6 @@ def authlog(okaymsg):
                 raise
         return wrapper
     return decorator
-
-
-#class Admin(admin.Admin):
-#    pass
 
 
 class Projects(auth.UserAuth):

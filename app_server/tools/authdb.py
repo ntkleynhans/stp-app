@@ -1,9 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Simple script to make empty authentication database ("auth.db") for
    the application server.
 """
-from __future__ import unicode_literals, division, print_function #Py2
 
 __author__ = "Daniel van Niekerk"
 __email__ = "dvn.demitasse@gmail.com"
@@ -45,13 +44,9 @@ if __name__ == "__main__":
     db_conn = create_new_db(outfn)
 
     if args.rootpass is not None:
-        try:
-            salt = bcrypt.gensalt(prefix=b"2a")
-        except:
-            salt = bcrypt.gensalt()
-        pwhash = bcrypt.hashpw(args.rootpass, salt)
+        salt = bcrypt.gensalt().decode()
+        pwhash = bcrypt.hashpw(args.rootpass.encode(), salt).decode()
 
         db_curs = db_conn.cursor()
         db_curs.execute("INSERT INTO users ( username, pwhash, salt, name, surname, email, role, tmppwhash ) VALUES (?,?,?,?,?,?,?,?)", ("root", pwhash, salt, None, None, None, "admin", None))
         db_conn.commit()
-

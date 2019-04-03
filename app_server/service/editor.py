@@ -1,6 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals, division, print_function #Py2
 
 import uuid
 import json
@@ -17,11 +16,7 @@ import subprocess
 from functools import wraps
 from types import FunctionType
 import unicodedata
-
-try:
-    from sqlite3 import dbapi2 as sqlite
-except ImportError:
-    from pysqlite2 import dbapi2 as sqlite #for old Python versions
+from sqlite3 import dbapi2 as sqlite
 
 import auth
 import admin
@@ -74,9 +69,6 @@ def authlog(okaymsg):
                 raise
         return wrapper
     return decorator
-
-#class Admin(admin.Admin):
-#    pass
 
 class Editor(auth.UserAuth):
 

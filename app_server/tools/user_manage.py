@@ -1,9 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Simple script to make empty authentication database ("auth.db") for
    the application server.
 """
-from __future__ import unicode_literals, division, print_function #Py2
 
 __author__ = "Daniel van Niekerk"
 __email__ = "dvn.demitasse@gmail.com"

@@ -1,10 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """This allows easy testing of the `projects` service of the
    application server. It can be run interactively or in 'simulation'
    mode.
 """
-from __future__ import unicode_literals, division, print_function #Py2
 
 import argparse
 import random

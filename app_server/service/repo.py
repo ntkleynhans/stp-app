@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Provide some basic higher level version control functions
    simplified for our application (i.e. working with single files
@@ -6,7 +6,6 @@
 
    This DOES NOT ALLOW SAFE CONCURRENT ACCESS to a shared `workingdir`
 """
-from __future__ import print_function, division, unicode_literals
 
 import os
 import sys
@@ -41,7 +40,7 @@ def check(workingdir, commit_id=None):
     if not log:
         raise RepoError("Empty")
     if not commit_id is None:
-        if log[-1].newhexsha != commit_id:
+        if log[-1].newhexsha != commit_id[0]:
             raise RepoError("Inconsistent")
     return True
 
@@ -68,9 +67,9 @@ def revert(workingdir, fbasename, commit_id, message=None):
        i.e. reverts a file without losing subsequent edit history.
     """
     r = git.Repo(workingdir)
-    r.git.checkout(commit_id, fbasename)
+    r.git.checkout(commit_id[0], fbasename)
     if message is None:
-        message = "reverted '{}' to {}".format(fbasename, commit_id)
+        message = "reverted '{}' to {}".format(fbasename, commit_id[0])
     return commit(workingdir, fbasename, message)
 
 
@@ -123,7 +122,7 @@ def test():
     print("\tCommited file to repo, commit id:", cid1)
     ### 4
     try:
-        repo.check(workingdir, cid1 + "not_correct_id")
+        repo.check(workingdir, cid1 + ("not_correct_id",))
     except repo.RepoError as e:
         assert str(e) == "Inconsistent"
         print("TEST_4 SUCCESS:", "Wrong commit ID caught!")

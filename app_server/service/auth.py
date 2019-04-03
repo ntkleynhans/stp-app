@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """TODO:
      -- This module (and admin.py) needs some cleaning up: refactoring
@@ -6,7 +6,6 @@
         usage. Currently only authenticate() has been separated out.
      -- Reset password needs to send user an email.
 """
-from __future__ import unicode_literals, division, print_function #Py2
 
 import string
 import random
@@ -16,13 +15,8 @@ import uuid, base64
 import logging
 import os
 import smtplib
-
-try:
-    from sqlite3 import dbapi2 as sqlite
-except ImportError:
-    from pysqlite2 import dbapi2 as sqlite #for old Python versions
-
-import bcrypt #Ubuntu/Debian: apt-get install python-bcrypt
+from sqlite3 import dbapi2 as sqlite
+import bcrypt #Ubuntu/Debian: apt-get install python3-bcrypt
 
 from httperrs import NotAuthorizedError, ConflictError
 
@@ -33,12 +27,12 @@ def gen_pw(length=7):
     return "".join(random.choice(alphabet) for i in range(length))
 
 def gen_token():
-    return base64.urlsafe_b64encode(str(uuid.uuid4()))
+    return base64.urlsafe_b64encode(str(uuid.uuid4()).encode()).decode()
 
 def hash_pw(password):
     salt = bcrypt.gensalt()
-    pwhash = bcrypt.hashpw(password, salt)
-    return salt, pwhash
+    pwhash = bcrypt.hashpw(password.encode(), salt)
+    return salt.decode(), pwhash.decode()
 
 class UserAuth(object):
     def __init__(self, config_file=None):
@@ -71,7 +65,7 @@ class UserAuth(object):
                 username, pwhash, salt, name, surname, email, role, tmppwhash = entry
                 #Password correct?
                 templogin = False
-                inpwhash = bcrypt.hashpw(request["password"], salt)
+                inpwhash = bcrypt.hashpw(request["password"].encode(), salt.encode()).decode()
                 if pwhash != inpwhash:
                     templogin = True
                     if tmppwhash:
@@ -127,7 +121,7 @@ class UserAuth(object):
             else:
                 username, pwhash, salt, name, surname, email, role, tmppwhash = entry
                 #Password correct?
-                inpwhash = bcrypt.hashpw(request["password"], salt)
+                inpwhash = bcrypt.hashpw(request["password"], salt.encode()).decode()
                 if pwhash != inpwhash:
                     if tmppwhash:
                         if tmppwhash != inpwhash:
@@ -166,7 +160,7 @@ class UserAuth(object):
                 username, pwhash, salt, name, surname, email, role, tmppwhash = entry
             #Generate random password and insert
             tmppw = gen_pw()
-            tmppwhash = bcrypt.hashpw(tmppw, salt)
+            tmppwhash = bcrypt.hashpw(tmppw.encode(), salt.encode()).decode()
             db_curs.execute("UPDATE users SET tmppwhash=? WHERE username=?", (tmppwhash, username))
 
             subject = 'Temporary password created for your account'
@@ -221,11 +215,12 @@ def test():
     from authdb import create_new_db
     #testuser
     salt = bcrypt.gensalt()
-    pwhash = bcrypt.hashpw("testpass", salt)
+    pwhash = bcrypt.hashpw("testpass".encode(), salt).decode()
     #create test DB and add testuser
+    if os.path.exists("/tmp/test.db"): os.remove("/tmp/test.db") 
     db_conn = create_new_db("/tmp/test.db")
     db_curs = db_conn.cursor()
-    db_curs.execute("INSERT INTO users ( username, pwhash, salt, name, surname, email, role, tmppwhash ) VALUES (?,?,?,?,?,?,?,?)", ("testuser", pwhash, salt, None, None, None, "root", None))
+    db_curs.execute("INSERT INTO users ( username, pwhash, salt, name, surname, email, role, tmppwhash ) VALUES (?,?,?,?,?,?,?,?)", ("testuser", pwhash, salt.decode(), None, None, None, "admin", None))
     db_conn.commit()
     #test UserAuth
     a = UserAuth()
@@ -236,35 +231,36 @@ def test():
     a.authdb.row_factory = sqlite.Row
     ## 1
     try:
-        print(a.login({"username": "testuser", "password": "wrongpass", "role" : "root"}))
+        print(a.login({"username": "testuser", "password": "wrongpass", "role" : "admin"}))
     except NotAuthorizedError:
         print("TEST_1 SUCCESS:", "Wrong password caught...")
     ## 2
-    tokenpackage = a.login({"username": "testuser", "password": "testpass", "role" : "root"})
+    tokenpackage = a.login({"username": "testuser", "password": "testpass", "role" : "admin"})
     print("TEST_2 SUCCESS:", "User authenticated with token:", tokenpackage["token"])
     ## 3
     try:
-        username = a.authdb.authenticate(tokenpackage["token"], "root")
+        username = a.authdb.authenticate(tokenpackage["token"], "admin")
         print("TEST_3 FAILED:", "Authenticated against expired token")
     except NotAuthorizedError:
         print("TEST_3 SUCCESS:", "Do not authenticate against expired token")
     ## 4
     a._config["toklife"] = 300
-    tokenpackage = a.login({"username": "testuser", "password": "testpass", "role" : "root"}) #should have been removed from tokens in previous test
-    username = a.authdb.authenticate(tokenpackage["token"], "root")
+    tokenpackage = a.login({"username": "testuser", "password": "testpass", "role" : "admin"}) #should have been removed from tokens in previous test
+    username = a.authdb.authenticate(tokenpackage["token"], "admin")
     if username is not None:
         print("TEST_4 SUCCESS:", "Authenticated logged in username:", username)
     else:
         print("TEST_4 FAILED:", "Could not authenticated logged in username")
     ## 5
     try:
-        print(a.login({"username": "testuser", "password": "testpass", "role" : "root"}))
+        print(a.login({"username": "testuser", "password": "testpass", "role" : "admin"}))
     except ConflictError:
         print("TEST_5 SUCCESS:", "Already logged in caught...")
     ## 6
+    a._config['role'] = 'admin'
     a.logout(tokenpackage)
     try:
-        username = a.authdb.authenticate(tokenpackage["token"], "root")
+        username = a.authdb.authenticate(tokenpackage["token"], "admin")
         print("TEST_6 FAILED:", "Authenticated against logged out token")
     except NotAuthorizedError:
         print("TEST_6 SUCCESS:", "Do not authenticate against logged out token")
