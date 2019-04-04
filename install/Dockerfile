@@ -1,12 +1,12 @@
 # DAC Speech Transcription Platform
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
-MAINTAINER Daniel van Niekerk <dvn.demitasse@gmail.com>
+MAINTAINER Neil Kleynhans <neil@nktek.co.za>
 LABEL Description="Basic STP platform served over HTTP using Apache"
 
 #Install standard tools from Ubuntu repo
 #RUN apt-get clean all && apt-get update && apt-get install -y --force-yes software-properties-common
-RUN apt-get clean all && apt-get update && apt-get install -y --force-yes apache2 libapache2-mod-proxy-uwsgi uwsgi uwsgi-plugin-python patch python python-bcrypt python-requests python-git sox libsox-fmt-all mp3splt pandoc vorbis-tools
+RUN apt-get clean all && apt-get update && apt-get install -y --force-yes apache2 uwsgi uwsgi-plugin-python3 patch python3 python3-bcrypt python3-requests python3-git sox libsox-fmt-all mp3splt pandoc vorbis-tools
 
 #Configure Apache to forward requests (uWSGI)
 COPY stp/install/* /etc/apache2/sites-available/
@@ -49,4 +49,4 @@ USER root
 WORKDIR $HOME/source/stp/app_server
 CMD chown -R dac:dac $PERSISTENT_FS && \
     /usr/sbin/apache2ctl start & \
-    uwsgi --uid $UID --gid $GID -l 10 -p 5 -z 600 -t 600 --master --enable-threads --plugin /usr/lib/uwsgi/plugins/python27_plugin.so --socket 127.0.0.1:9090 --wsgi-file wsgi.py  --env services_config=config/dispatcher.json
+    uwsgi --uid $UID --gid $GID -l 10 -p 5 -z 600 -t 600 --master --enable-threads --protocol=http --plugin /usr/lib/uwsgi/plugins/python3_plugin.so --socket 127.0.0.1:9090 --wsgi-file wsgi.py  --env services_config=config/dispatcher.json
