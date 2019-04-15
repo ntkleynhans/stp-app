@@ -1,0 +1,20 @@
+{
+  "baseurl": "http://192.168.8.145/app/",
+  "admin_password":  "password",
+  "user_password": "password",
+  "project_user": "ntkleynhans",
+  "projectmanager": "ntkleynhans",
+  "collator" : "ntkleynhans",
+
+  "uploader" : {
+    "USERS": { "testuser" : {"username" : "testuser", "password" : "password", "name" : "Test",   "surname" : "Test", "email" : "test@test.io", "role" : "editor"}
+    },
+
+    "ULIZA": { "testuserx" : {"username" : "testuserx", "password" : "password", "name" : "Test",   "surname" : "Test", "email" : "stp@za.io", "role" : "editor"}
+    }
+  },
+
+  "downloader" : {
+    "USERS" : ["ntkleynhans"]
+  }
+}

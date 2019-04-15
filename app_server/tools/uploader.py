@@ -8,6 +8,7 @@ import json
 import os
 import logging
 import logging.handlers
+import codecs
 
 # Some constants
 BASEURL = None
@@ -48,7 +49,10 @@ class Uploader:
         self.user_password = config['user_password']
         self.admin_token = None
         self.user_token = None
+        self.editor_user_token = None
         self.project_user = config['project_user']
+        self.projectmanager = config['projectmanager']
+        self.collator = config['collator']
         self.project_id = None
 
     def adminlin(self):
@@ -135,7 +139,7 @@ class Uploader:
         if self.user_token is not None:
             LOG.info("Creating project")
             headers = {"Content-Type" : "application/json"}
-            data = {"token": self.user_token, "projectname" : name, "category" : "General", "projectmanager" : 'cvheerden' }
+            data = {"token": self.user_token, "projectname" : name, "category" : "General", "projectmanager" : self.projectmanager }
             res = requests.post(BASEURL + "projects/createproject", headers=headers, data=json.dumps(data))
             LOG.info('createproject(): SERVER SAYS:{}'.format(res.text))
             LOG.info(res.status_code)
@@ -192,7 +196,7 @@ class Uploader:
         if self.user_token is not None and self.projectid is not None:
             LOG.info("Assigning tasks")
             headers = {"Content-Type" : "application/json"}
-            data = {"token": self.user_token, "projectid" : self.projectid, "collator" : 'cvheerden'}
+            data = {"token": self.user_token, "projectid" : self.projectid, "collator" : self.collator}
             res = requests.post(BASEURL + "projects/assigntasks", headers=headers, data=json.dumps(data))
             LOG.info('assigntasks(): SERVER SAYS:{}'.format(res.text))
             LOG.info(res.status_code)
@@ -217,6 +221,60 @@ class Uploader:
         else:
             LOG.info("User not logged in!")
 
+    def editor_login(self, user, password):
+        """
+            Login as user
+            Place user 'token' in self.user_token
+        """
+        if self.editor_user_token is None:
+            LOG.info("{} logging in".format(user))
+            headers = {"Content-Type" : "application/json"}
+            data = {"username": user, "password": password, "role" : 'editor'}
+            res = requests.post(BASEURL + "editor/login", headers=headers, data=json.dumps(data))
+            LOG.info('login(): SERVER SAYS:{}'.format(res.text))
+            if res.status_code != 200:
+                print('Assigntasks Failed -- deleting project')
+                self.deleteproject()
+            else:
+                pkg = res.json()
+                self.editor_user_token = pkg['token']
+        else:
+            LOG.info("User logged in already!")
+
+    def editor_logout(self):
+        """
+            Logout as user
+        """
+        if self.editor_user_token is not None:
+            headers = {"Content-Type" : "application/json"}
+            data = {"token": self.editor_user_token}
+            res = requests.post(BASEURL + "editor/logout", headers=headers, data=json.dumps(data))
+            LOG.info('logout(): SERVER SAYS:{}'.format(res.text))
+            self.editor_user_token = None
+        else:
+            LOG.info("User not logged in!")
+
+    def savetext(self, text):
+        """
+            Save text to task text file
+        """
+        LOG.info("Saving task text")
+        if self.editor_user_token is not None and self.projectid is not None:
+            headers = {"Content-Type" : "application/json"}
+            #TASKID hard coded as we are creating single tasks per file
+            data = {'token' : self.editor_user_token, 'projectid' : self.projectid, 'taskid' : 0, "text" : text}
+            res = requests.post(BASEURL + "editor/savetext", headers=headers, data=json.dumps(data))
+            print('SERVER SAYS:', res.text)
+            LOG.info("savetext() done")
+            LOG.info(res.status_code)
+            if res.status_code != 200:
+                print('Savetext Failed -- deleting project')
+                self.deleteproject()
+        else:
+            print("User not logged in!")
+            LOG.error("savetext(): User not logged in!")
+        print('')
+
 
 if __name__ == "__main__":
 
@@ -231,26 +289,31 @@ if __name__ == "__main__":
     config = json.load(open('config.json'))
     USERS = config['uploader']['USERS']
     ULIZA = config['uploader']['ULIZA']
+    BASEURL = config['baseurl']
 
     uploader = Uploader(config)
 
-    """
-    uploader.adminlin()
+    """uploader.adminlin()
     for user in USERS.keys():
         print('Adding user: {}'.format(user))
         uploader.adduser(user)
     uploader.adminlout()
+    sys.exit()
     for user in ULIZA.keys():
         print('Adding user: {}'.format(user))
         uploader.adduser(user)
     uploader.adminlout()
-    exit() 
-    """
+    sys.exit()""" 
 
     uploader.login()
     for line in open(sys.argv[1], "r"):
         print("Processing: {}".format(line.rstrip()))
-        ogg_file, duration, project_name, editor_username = line.rstrip().split(";")
+        try:
+            ogg_file, duration, project_name, editor_username, transcription_file = line.rstrip().split(";")
+        except:
+            ogg_file, duration, project_name, editor_username = line.rstrip().split(";")
+            transcription_file = None
+
         uploader.createproject(project_name)
         if uploader.projectid is not None:
             uploader.uploadaudio(ogg_file)
@@ -258,6 +321,15 @@ if __name__ == "__main__":
             uploader.saveproject(project_name, duration, editor_username)
         if uploader.projectid is not None:
             uploader.assigntasks()
+        if uploader.projectid is not None and transcription_file is not None:
+            try:
+                text = codecs.open(transcription_file, "r", "utf-8").read()
+                uploader.editor_login(USERS[editor_username]['username'],
+                    USERS[editor_username]['password'])
+                uploader.savetext(text)
+                uploader.editor_logout()
+            except Exception as e:
+                print('Error', str(e))
+                uploader.deleteproject()
 
     uploader.logout()
-

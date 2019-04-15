@@ -49,7 +49,6 @@ class Downloader:
         self.project_id = None
         self.project_user = config['project_user']
         self.project_token = None
-        BASEURL = config['baseurl']
 
     def login_project(self):
         """
@@ -173,6 +172,7 @@ if __name__ == "__main__":
 
     config = json.load(open('config.json'))
     USERS = config['downloader']['USERS']
+    BASEURL = config['baseurl']
     downloader = Downloader(config)
 
     downloader.login_project()
