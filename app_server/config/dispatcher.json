@@ -71,6 +71,8 @@
 					  "parameters" : ["token", "projectid"] },
 	    "/projects/clearerror" : { "method" : "service.projects.Projects.clear_error",
 				   "parameters" : ["token", "projectid"] },
+	    "/projects/updateediting" : { "method" : "service.projects.Projects.update_editing",
+				   "parameters" : ["token", "projectid", "project", "tasks"] },
 
 	    "/editor/login" : { "method" : "service.editor.Editor.login",
 				  "parameters" : ["username", "password", "role"] },

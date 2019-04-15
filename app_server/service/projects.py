@@ -614,6 +614,41 @@ class Projects(auth.UserAuth):
             row = db.clearerror_project(request["projectid"])
         return "Project Error Status Cleared!"
 
+    @authlog("Editing updated")
+    def update_editing(self, request):
+        """Update the current task editors
+        """
+        taskupdatefields = {"editor", "editing"}
+        if "tasks" in request:
+            #Check taskid in all tasks and taskids unique
+            try:
+                in_taskids = [task["taskid"] for task in request["tasks"]]
+            except KeyError:
+                raise BadRequestError("Task ID not found in input")
+            if len(in_taskids) != len(set(in_taskids)):
+                raise BadRequestError("Task IDs not unique in input")
+            in_taskids = set(in_taskids)
+            for task in request["tasks"]:
+                task["editor"] = task["new_editor"]
+                task["editing"] = task["new_editor"]
+
+        with self.db as db:
+            #This will lock the DB:
+            db.check_project(request["projectid"], check_err=False) #DEMIT: check_err?
+            if "tasks" in request:
+                #Check whether tasks assigned
+                if not db.project_assigned(request["projectid"]):
+                    raise ConflictError("Save and assign tasks before calling update...")
+                #Check whether all taskids valid
+                curr_taskids = set(task["taskid"] for task in db.get_tasks(request["projectid"], fields=["taskid"]))
+                if not curr_taskids.issuperset(in_taskids):
+                    raise BadRequestError("Invalid task ID in input")
+                #Update fields
+                for task in request["tasks"]:
+                    taskfields = taskupdatefields.intersection(task)
+                    db.update_tasks(request["projectid"], [task], fields=taskfields)
+        return "Editors updated!"
+
 class ProjectDB(sqlite.Connection):
     def lock(self):
         self.execute("BEGIN IMMEDIATE")
