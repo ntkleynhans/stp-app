@@ -85,8 +85,10 @@ def fix_oggsplt_time(realtime):
     dts = str(dt)
     (hour, minute, second) = dts.split(":")
     minute = int(60.0 * float(hour) + float(minute))
-    second = int(math.ceil(float(second)))
-    return "{}.{}".format(minute, second)
+    second = float(second) - 0.1
+    if second < 0.0:
+        second = 0.0
+    return "{}.{:.1f}".format(minute, float(second))
 
 # Cross domain access
 ALLOW = [("Access-Control-Allow-Origin", "*"), ("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS"),
