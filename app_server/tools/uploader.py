@@ -222,12 +222,17 @@ if __name__ == "__main__":
     uploader.login()
 
     uploader.createproject(data['project_name'])
-    if uploader.projectid is not None:
-        uploader.uploadaudio(data['ogg_file'])
-    if uploader.projectid is not None:       
-        uploader.saveproject(data['project_name'], data['tasks'])
-    if uploader.projectid is not None:
-        uploader.assigntasks()
+    try:
+        if uploader.projectid is not None:
+            uploader.uploadaudio(data['oggfile'])
+        if uploader.projectid is not None:       
+            uploader.saveproject(data['project_name'], data['tasks'])
+        if uploader.projectid is not None:
+            uploader.assigntasks()
+    except Exception as e:
+        print('Error', str(e))
+        uploader.deleteproject()
+
     if uploader.projectid is not None:
         try:
             for ndx, text in enumerate(data['text']):
