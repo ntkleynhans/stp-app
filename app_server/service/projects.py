@@ -220,8 +220,8 @@ class Projects(auth.UserAuth):
         for taskid, task in enumerate(tasks):
             if prevtask_end is None:
                 prevtask_end = 0.0
-            if not approx_eq(prevtask_end, task["start"]):
-                raise BadRequestError("Tasks times not contiguous and non-overlapping")
+            #if not approx_eq(prevtask_end, task["start"]):
+            #    raise BadRequestError("Tasks times not contiguous and non-overlapping")
             prevtask_end = task["end"]
             task["taskid"] = taskid
             task["projectid"] = request["projectid"]
