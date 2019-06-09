@@ -235,9 +235,9 @@ class Projects(auth.UserAuth):
             if row["audiodur"] is None:
                 raise ConflictError("No audio has been uploaded")
             #Check tasks span audio
-            if prevtask_end is not None:
-                if not approx_eq(row["audiodur"], prevtask_end):
-                    raise BadRequestError("Tasks do not span entire audio file")
+            #if prevtask_end is not None:
+            #    if not approx_eq(row["audiodur"], prevtask_end):
+            #        raise BadRequestError("Tasks do not span entire audio file")
             #Check whether tasks already assigned
             if db.project_assigned(request["projectid"]):
                 raise ConflictError("Cannot be re-saved because tasks are already assigned (use: update_project())")
