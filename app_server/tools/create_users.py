@@ -122,19 +122,15 @@ class Uploader:
 
     def _requests(self, path, data):
         headers = {"Content-Type" : "application/json"}
-        return requests.post(BASEURL + path, headers=headers, data=json.dump(data))
+        return requests.post(BASEURL + path, headers=headers, data=json.dumps(data))
 
 if __name__ == "__main__":
 
     if len(sys.argv) != 2:
-        print('{}: input_info_file'.format(sys.argv[0]))
+        print('{}: config_file'.format(sys.argv[0]))
         sys.exit(1)
 
-    if not os.path.exists('config.json'):
-        print('ERROR: cannot load config.json file in current folder')
-        sys.exit(1)
-
-    config = json.load(open('config.json'))
+    config = json.load(sys.argv[1])
     USERS = config['uploader']['USERS']
     BASEURL = config['baseurl']
 
