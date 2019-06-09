@@ -85,9 +85,7 @@ def fix_oggsplt_time(realtime):
     dts = str(dt)
     (hour, minute, second) = dts.split(":")
     minute = int(60.0 * float(hour) + float(minute))
-    second = float(second) - 0.1
-    if second < 0.0:
-        second = 0.0
+    second = float(second)
     return "{}.{:.1f}".format(minute, float(second))
 
 # Cross domain access
@@ -113,27 +111,33 @@ def application(env, start_response):
                 error = ""
                 if "range" in d:
                     (start, end) = d['range']
+                    LOG.info('Range: {}'.format(d['range']))
                     start = fix_oggsplt_time(start)
                     end = fix_oggsplt_time(end)
+                    LOG.info('start, end: {}, {}'.format(start, end))
 
                     mp3splt = subprocess.Popen((MP3SPLT, d["filename"], start, end, "-d", "/tmp", "-o", os.path.basename(tmpout.name)), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     mp3splt_stdo, mp3splt_stde = mp3splt.communicate()
                     LOG.info(mp3splt_stdo)
+                    LOG.info(mp3splt_stde)
                     error = "{}{}".format(error, mp3splt_stde)
 
                     oggdec = subprocess.Popen((OGGDEC, "-o", tmpin.name, "{}.ogg".format(tmpout.name)), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     oggdec_stdo, oggdec_stde = oggdec.communicate()
                     LOG.info(oggdec_stdo)
+                    LOG.info(oggdec_stde)
                     error = "{}{}".format(error, oggdec_stde)
                     
                     sox = subprocess.Popen((SOX, "-t", "wav", tmpin.name, "-t", "wav", tmpout.name, "gain", "-n"), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     sox_stdo, sox_stde = sox.communicate()
                     LOG.info(sox_stdo)
+                    LOG.info(sox_stde)
                     error="{}{}".format(error, sox_stde)
                    
                     oggenc = subprocess.Popen((OGGENC, "-o", tmpin.name, tmpout.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     oggenc_stdo, oggenc_stde = oggenc.communicate()
                     LOG.info(oggenc_stdo)
+                    LOG.info(oggenc_stde)
                     error = "{}{}".format(error, oggenc_stde)
 
                     with open(tmpin.name, "rb") as f:
