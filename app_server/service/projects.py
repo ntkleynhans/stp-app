@@ -418,6 +418,7 @@ class Projects(auth.UserAuth):
 
             #Write audio file (DEMIT: check audiofile name creation)
             audiofile = os.path.join(ppath, base64.urlsafe_b64encode(str(uuid.uuid4()).encode()).decode())
+            audiofile = '{}.ogg'.format(audiofile)
             with open(audiofile, 'wb') as f:
                 f.write(request['file'])
             audiodur = float(subprocess.check_output([SOXI_BIN, "-D", audiofile]))
